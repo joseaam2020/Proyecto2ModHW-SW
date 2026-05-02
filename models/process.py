@@ -1,6 +1,8 @@
 from typing import List, Optional
 from product import Product
 from task import Task
+import json
+import os 
 
 class Process:
     """Represents a process in the workflow.
@@ -76,3 +78,38 @@ class Process:
         """Performs any necessary setup for the process before starting."""
         for product in self.products:
             self.tasks[0].add_product(product)
+            
+    def generate_report(self) -> dict:
+        """Generates a report of the current state of the process.
+
+        Returns:
+            dict: A dictionary containing the process ID, information about each product,
+                and information about each task in the process.
+        """
+        return {
+            "process_id": self.id,
+            "products": [
+                {"product_id": p.id, "state": p.state, "pid": p.pid, "tid": p.tid}
+                for p in self.products
+            ],
+            "tasks": [
+                {
+                    "task_id": t.id,
+                    "task_time": t.task_time,
+                    "queue_product_ids": [p.id for p in t.queue],
+                    "product_in_process_id": t.product_in_process.id if t.product_in_process else None,
+                    "current_time": t.current_time,
+                }
+                for t in self.tasks
+            ]
+        }
+
+    def save_report(report: dict, tick: int) -> None:
+        """Saves the given report as a JSON file in the reports directory.
+
+        Args: report (dict): The report data to be saved.
+            tick (int): The current tick number, used to name the report file.
+        """
+        os.makedirs("reports", exist_ok=True)
+        with open(f"reports/report_tick_{tick:03d}.json", "w") as f:
+            json.dump(report, f, indent=2)
