@@ -67,6 +67,11 @@ class Process:
         for task in self.tasks:
             task.tick()
 
+        for product in self.products:
+            if product.state == 'D' and self.next is not None:
+                self.next.add_product(product)
+                self.products.remove(product)
+
     def setup(self) -> None:
         """Performs any necessary setup for the process before starting."""
         for product in self.products:
