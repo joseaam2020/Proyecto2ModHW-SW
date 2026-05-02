@@ -16,18 +16,21 @@ if __name__ == "__main__":
     process.add_task(task2)
 
     # Create 5 products and add them to the process
-    products = [Product(id=i+1, tid=task1.id, pid=process.id) for i in range(5)]
+    products = [Product(id=i+1) for i in range(5)]
     for product in products:
         process.add_product(product)
 
     # Setup process (assign products to first task)
+    # The first tick is the setup phase where products are assigned to the first task
     process.setup()
 
     # Simulate ticks and print reports
     for tick in range(1, 8):
         print(f"\nTick {tick}")
-        process.tick()
         report = process.generate_report()
-        print(report)
+
         # Optionally save the report
-        # Process.save_report(report, tick)
+        Process.save_report(report, tick)
+
+        print(report)
+        process.tick()

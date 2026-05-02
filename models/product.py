@@ -9,7 +9,7 @@ class Product:
 		pid (int): Process ID.
 	"""
 
-	def __init__(self, id:int, tid:int, pid:int):
+	def __init__(self, id:int):
 		"""Initializes a Product with default state 'Q' (queued).
 
 		Args:
@@ -19,8 +19,8 @@ class Product:
 		"""
 		self.id: int = id
 		self.state: str = 'Q'
-		self.tid: int = tid
-		self.pid: int = pid
+		self.tid: int = 0
+		self.pid: int = 0
 
 	def change_state_processing(self) -> None:
 		"""Changes the product state to 'P' (processing)."""

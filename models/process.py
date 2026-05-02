@@ -97,6 +97,7 @@ class Process:
                     "task_id": t.id,
                     "task_time": t.task_time,
                     "queue_product_ids": [p.id for p in t.queue],
+                    "state": t.state,
                     "product_in_process_id": t.product_in_process.id if t.product_in_process else None,
                     "current_time": t.current_time,
                 }
