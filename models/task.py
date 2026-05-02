@@ -1,0 +1,72 @@
+from product import Product
+
+class Task:
+    """Represents a task in the process workflow.
+
+    Attributes:
+        id (int): Task ID.
+        task_time (int): Number of ticks needed to finish a product.
+        queue (list[Product]): List of products that are queued.
+        product_in_process (Product | None): Reference to the product being processed.
+        state (str): 'P' for processing, 'NP' for not processing.
+        current_time (int): Current tick.
+        next_task (Task | None): Reference to the next task in the process.
+    """
+
+    def __init__(self, id: int, task_time: int):
+        """Initializes a Task.
+
+        Args:
+            id (int): Task ID.
+            task_time (int): Number of ticks needed to finish a product.
+        """
+        self.id: int = id
+        self.task_time: int = task_time
+        self.queue: list[Product] = []
+        self.product_in_process: Product | None = None
+        self.state: str = 'NP'
+        self.current_time: int = 1
+        self.next_task: Task | None = None
+
+    def set_next_task(self, next_task: 'Task') -> None:
+        """Sets the next task in the process.
+
+        Args:
+            next_task (Task): Reference to the next task.
+        """
+        self.next_task = next_task
+
+    def add_product(self, product: Product) -> None:
+        """Adds a product to the task's queue.
+
+        Args:
+            product (Product): The product to be added to the queue.
+        """
+        if self.state == 'NP':
+            product.change_state_processing()
+            self.product_in_process = product
+            self.state = 'P'
+        else:
+            product.change_state_quequed()
+            self.queue.append(product)
+
+    def tick(self) -> None:
+        """Advances the task by one tick, processing products as needed."""
+        if self.state == 'NP':
+            return
+
+        if self.current_time == self.task_time:
+            self.current_time = 1
+            if self.next_task is None:
+                self.product_in_process.change_state_done()
+            else:
+                self.next_task.add_product(self.product_in_process)
+
+            if self.queue:
+                self.product_in_process = self.queue.pop(0)
+                self.product_in_process.change_state_processing()
+            else:
+                self.product_in_process = None
+                self.state = 'NP'
+        else:
+            self.current_time += 1
