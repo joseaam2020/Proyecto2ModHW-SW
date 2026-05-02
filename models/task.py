@@ -1,5 +1,5 @@
 from typing import List, Optional
-from product import Product
+from models.product import Product
 
 class Task:
     """Represents a task in the process workflow.

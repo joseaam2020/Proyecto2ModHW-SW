@@ -1,6 +1,6 @@
 from typing import List, Optional
-from product import Product
-from task import Task
+from models.product import Product
+from models.task import Task
 import json
 import os 
 
