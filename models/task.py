@@ -1,3 +1,4 @@
+from typing import List, Optional
 from product import Product
 
 class Task:
@@ -6,11 +7,11 @@ class Task:
     Attributes:
         id (int): Task ID.
         task_time (int): Number of ticks needed to finish a product.
-        queue (list[Product]): List of products that are queued.
-        product_in_process (Product | None): Reference to the product being processed.
+        queue (List[Product]): List of products that are queued.
+        product_in_process (Optional[Product]): Reference to the product being processed.
         state (str): 'P' for processing, 'NP' for not processing.
         current_time (int): Current tick.
-        next_task (Task | None): Reference to the next task in the process.
+        next_task (Optional['Task']): Reference to the next task in the process.
     """
 
     def __init__(self, id: int, task_time: int):
@@ -22,11 +23,11 @@ class Task:
         """
         self.id: int = id
         self.task_time: int = task_time
-        self.queue: list[Product] = []
-        self.product_in_process: Product | None = None
+        self.queue: List[Product] = []
+        self.product_in_process: Optional[Product] = None
         self.state: str = 'NP'
         self.current_time: int = 1
-        self.next_task: Task | None = None
+        self.next_task: Optional['Task'] = None
 
     def set_next_task(self, next_task: 'Task') -> None:
         """Sets the next task in the process.
