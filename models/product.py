@@ -22,19 +22,19 @@ class Product:
 		self.tid: int = tid
 		self.pid: int = pid
 
-	def change_state_processing(self):
+	def change_state_processing(self) -> None:
 		"""Changes the product state to 'P' (processing)."""
 		self.state = 'P'
 
-	def change_state_quequed(self):
+	def change_state_quequed(self) -> None:
 		"""Changes the product state to 'Q' (queued)."""
 		self.state = 'Q'
 
-	def change_state_done(self):
+	def change_state_done(self) -> None:
 		"""Changes the product state to 'D' (done)."""
 		self.state = 'D'
 
-	def change_task(self, next_tid: int):
+	def change_task(self, next_tid: int) -> None:
 		"""Changes the associated task.
 
 		Args:
@@ -42,7 +42,7 @@ class Product:
 		"""
 		self.tid: int = next_tid
 
-	def change_process(self, next_pid: int):
+	def change_process(self, next_pid: int) -> None:
 		"""Changes the associated process.
 
 		Args:
