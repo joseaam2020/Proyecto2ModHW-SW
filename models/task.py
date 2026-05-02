@@ -43,6 +43,8 @@ class Task:
         Args:
             product (Product): The product to be added to the queue.
         """
+        product.change_task(self.id)
+
         if self.state == 'NP':
             product.change_state_processing()
             self.product_in_process = product

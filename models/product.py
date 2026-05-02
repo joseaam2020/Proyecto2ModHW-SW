@@ -3,24 +3,24 @@ class Product:
 	"""Represents a product in the system.
 
 	Attributes:
-		id (any): Product ID.
+		id (int): Product ID.
 		state (str): Product state ('P' for processing, 'Q' for queued, 'D' for done).
-		task (any): Reference to the assigned task.
-		process (any): Reference to the assigned process.
+		tid (int): Task ID.
+		pid (int): Process ID.
 	"""
 
-	def __init__(self, id, task, process):
+	def __init__(self, id:int, tid:int, pid:int):
 		"""Initializes a Product with default state 'Q' (queued).
 
 		Args:
-			id (any): Product ID.
-			task (any): Reference to the assigned task.
-			process (any): Reference to the assigned process.
+			id (int): Product ID.
+			tid (int): Task ID.
+			pid (int): Process ID.
 		"""
-		self.id = id
-		self.state = 'Q'
-		self.task = task
-		self.process = process
+		self.id: int = id
+		self.state: str = 'Q'
+		self.tid: int = tid
+		self.pid: int = pid
 
 	def change_state_processing(self):
 		"""Changes the product state to 'P' (processing)."""
@@ -34,18 +34,18 @@ class Product:
 		"""Changes the product state to 'D' (done)."""
 		self.state = 'D'
 
-	def change_task(self, next_task):
+	def change_task(self, next_tid: int):
 		"""Changes the associated task.
 
 		Args:
-			next_task (any): The new task to associate with the product.
+			next_tid (int): The new task ID to associate with the product.
 		"""
-		self.task = next_task
+		self.tid: int = next_tid
 
-	def change_process(self, next_process):
+	def change_process(self, next_pid: int):
 		"""Changes the associated process.
 
 		Args:
-			next_process (any): The new process to associate with the product.
+			next_pid (int): The new process ID to associate with the product.
 		"""
-		self.process = next_process
+		self.pid: int = next_pid
