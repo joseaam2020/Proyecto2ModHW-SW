@@ -26,11 +26,13 @@ if __name__ == "__main__":
 
     # Simulate ticks and print reports
     for tick in range(1, 8):
+
         print(f"\nTick {tick}")
+        process.tick()
+
         report = process.generate_report()
 
         # Optionally save the report
         Process.save_report(report, tick)
 
         print(report)
-        process.tick()

@@ -44,32 +44,29 @@ class Task:
             product (Product): The product to be added to the queue.
         """
         product.change_task(self.id)
-
-        if self.state == 'NP':
-            product.change_state_processing()
-            self.product_in_process = product
-            self.state = 'P'
-        else:
-            product.change_state_quequed()
-            self.queue.append(product)
+        product.change_state_quequed()
+        self.queue.append(product)
 
     def tick(self) -> None:
         """Advances the task by one tick, processing products as needed."""
-        if self.state == 'NP':
-            return
+        print(f"Queue for Task {self.id}: {self.queue}")
+        if self.state == 'NP' and self.queue:
+            self.product_in_process = self.queue.pop(0)
+            self.product_in_process.change_state_processing()
+            self.state = 'P'
+        elif self.state == 'P':
+            if self.current_time == self.task_time:
+                self.current_time = 1
+                if self.next_task is None:
+                    self.product_in_process.change_state_done()
+                else:
+                    self.next_task.add_product(self.product_in_process)
 
-        if self.current_time == self.task_time:
-            self.current_time = 1
-            if self.next_task is None:
-                self.product_in_process.change_state_done()
+                if self.queue:
+                    self.product_in_process = self.queue.pop(0)
+                    self.product_in_process.change_state_processing()
+                else:
+                    self.product_in_process = None
+                    self.state = 'NP'
             else:
-                self.next_task.add_product(self.product_in_process)
-
-            if self.queue:
-                self.product_in_process = self.queue.pop(0)
-                self.product_in_process.change_state_processing()
-            else:
-                self.product_in_process = None
-                self.state = 'NP'
-        else:
-            self.current_time += 1
+                self.current_time += 1
