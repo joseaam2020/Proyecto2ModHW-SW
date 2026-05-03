@@ -44,13 +44,23 @@ def simulate():
     builder = PipelineBuilder(processes_data, products_data)
     processes = builder.build()
 
+    #Deletes all files in the reports directory before a new simulation.
+    reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
+    reports_dir = os.path.abspath(reports_dir)
+    if os.path.exists(reports_dir):
+        for filename in os.listdir(reports_dir):
+            file_path = os.path.join(reports_dir, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+    else:
+        os.makedirs(reports_dir, exist_ok=True)
+
     # Run simulation for a fixed number of ticks (e.g., 10)
     NUM_TICKS = 10
     for tick in range(1, NUM_TICKS + 1):
         for process in processes:
             process.tick()
-            report = process.generate_report()
-            process.save_report(report, tick)  # Save report for each process/tick if desired
+            process.save_report(tick)  # Save report for each process/tick if desired
 
     return redirect(url_for('index'))
 

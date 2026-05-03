@@ -106,12 +106,13 @@ class Process:
             ]
         }
 
-    def save_report(report: dict, tick: int) -> None:
+    def save_report(self,tick: int) -> None:
         """Saves the given report as a JSON file in the reports directory.
 
         Args: report (dict): The report data to be saved.
             tick (int): The current tick number, used to name the report file.
         """
         os.makedirs("reports", exist_ok=True)
+        report = self.generate_report()
         with open(f"reports/report_tick_{tick:03d}.json", "w") as f:
             json.dump(report, f, indent=2)
