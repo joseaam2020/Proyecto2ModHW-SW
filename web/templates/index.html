@@ -1,9 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Reports Index</title>
+    <title>Simulation Setup</title>
+    <script src="{{ url_for('static', filename='index.js') }}" defer></script>
 </head>
 <body>
+    <h1>Simulation Setup</h1>
+    <form method="post" action="/simulate">
+        <label>Number of Products: <input type="number" name="num_products" min="1" value="5" required></label><br>
+        <label>Number of Ticks: <input type="number" name="num_ticks" min="1" value="10" required></label><br>
+        <div id="processes"></div>
+        <button type="button" onclick="addProcess()">Add process</button>
+        <button type="button" onclick="clearState()">Clear</button><br><br>
+        <button type="submit">Run Simulation</button>
+    </form>
+
+    <hr>
+
     <h1>Available Reports</h1>
     <ul>
         {% for report in reports %}
