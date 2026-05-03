@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports Index</title>
+</head>
+<body>
+    <h1>Available Reports</h1>
+    <ul>
+        {% for report in reports %}
+            <li><a href="{{ url_for('report', filename=report) }}">{{ report }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

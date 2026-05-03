@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Report: {{ filename }}</title>
+</head>
+<body>
+    <h1>Report: {{ filename }}</h1>
+    <h2>Process ID: {{ report.process_id }}</h2>
+
+    <h3>Products</h3>
+    <table border="1">
+        <tr>
+            <th>Product ID</th>
+            <th>State</th>
+            <th>Process ID</th>
+            <th>Task ID</th>
+        </tr>
+        {% for product in report.products %}
+        <tr>
+            <td>{{ product.product_id }}</td>
+            <td>{{ product.state }}</td>
+            <td>{{ product.pid }}</td>
+            <td>{{ product.tid }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Tasks</h3>
+    <table border="1">
+        <tr>
+            <th>Task ID</th>
+            <th>Task Time</th>
+            <th>Queue Product IDs</th>
+            <th>State</th>
+            <th>Product In Process ID</th>
+            <th>Current Time</th>
+        </tr>
+        {% for task in report.tasks %}
+        <tr>
+            <td>{{ task.task_id }}</td>
+            <td>{{ task.task_time }}</td>
+            <td>
+                {% for pid in task.queue_product_ids %}
+                    {{ pid }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+            <td>{{ task.state }}</td>
+            <td>{{ task.product_in_process_id }}</td>
+            <td>{{ task.current_time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="{{ url_for('index') }}">Back to index</a>
+</body>
+</html>
