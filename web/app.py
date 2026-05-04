@@ -1,10 +1,13 @@
 # web/app.py
 from flask import Flask, render_template, send_from_directory
 from flask import request, redirect, url_for
+from typing import List
 from models.pipeline_builder import PipelineBuilder
+from models.process import Process
 
 import os
 import json
+
 
 app = Flask(__name__)
 
@@ -42,7 +45,7 @@ def simulate():
 
     # Build pipeline
     builder = PipelineBuilder(processes_data, products_data)
-    processes = builder.build()
+    processes : List[Process] = builder.build()
 
     #Deletes all files in the reports directory before a new simulation.
     reports_dir = os.path.join(os.path.dirname(__file__), '..', 'reports')
@@ -55,12 +58,16 @@ def simulate():
     else:
         os.makedirs(reports_dir, exist_ok=True)
 
-    # Run simulation for a fixed number of ticks (e.g., 10)
-    NUM_TICKS = 10
-    for tick in range(1, NUM_TICKS + 1):
+    tick = 1
+    while True:
         for process in processes:
             process.tick()
-            process.save_report(tick)  # Save report for each process/tick if desired
+            process.save_report(tick)
+        # Check if all products in the last process are done
+        last_process = next(p for p in processes if p.is_last)
+        if last_process.products and all(product.state == 'D' for product in last_process.products):
+            break
+        tick += 1
 
     return redirect(url_for('index'))
 
