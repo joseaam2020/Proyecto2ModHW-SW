@@ -114,5 +114,24 @@ class Process:
         """
         os.makedirs("reports", exist_ok=True)
         report = self.generate_report()
-        with open(f"reports/report_tick_{tick:03d}.json", "w") as f:
-            json.dump(report, f, indent=2)
+        file_path : str = f"reports/report_tick_{tick:03d}.json"
+        if not os.path.exists(file_path):
+            with open(file_path, "w") as f:
+                #print(f"Proceso {self.id} creo y escribio en reporte {tick:03d}}")
+                json.dump(report, f, indent=2)
+        else:
+            with open(file_path, "r") as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    print(f"No se pudo cargar json de reporte_tick_{tick:03d}")
+                    data = []
+
+            if not isinstance(data, list):
+                data = [data]
+                    
+            data.append(report)
+            with open(file_path,"w") as f:
+                #print(f"Proceso {self.id} leyo y escribio en reporte {tick:03d}}")
+                json.dump(data, f, indent=2) 
+                
