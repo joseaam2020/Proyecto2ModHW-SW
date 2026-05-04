@@ -71,8 +71,9 @@ class Process:
 
         for product in self.products:
             if product.state == 'D' and self.next is not None:
+                product.change_state_quequed()
                 self.next.add_product(product)
-                #TODO: Update or assign product to first task
+                self.next.tasks[0].add_product(product)
                 self.products.remove(product)
 
     def setup(self) -> None:
