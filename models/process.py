@@ -119,7 +119,7 @@ class Process:
         if not os.path.exists(file_path):
             with open(file_path, "w") as f:
                 #print(f"Proceso {self.id} creo y escribio en reporte {tick:03d}}")
-                json.dump(report, f, indent=2)
+                json.dump([report], f, indent=2)
         else:
             with open(file_path, "r") as f:
                 try:
