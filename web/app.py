@@ -16,6 +16,7 @@ REPORTS_DIR = os.path.join(os.path.dirname(__file__), '..', 'reports')
 @app.route('/')
 def index():
     # List all report files
+    os.makedirs(REPORTS_DIR, exist_ok=True)
     reports = sorted(f for f in os.listdir(REPORTS_DIR) if f.endswith('.json'))
     return render_template('index.html', reports=reports)
 
