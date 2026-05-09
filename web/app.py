@@ -65,7 +65,7 @@ def simulate():
             process.save_report(tick)
         # Check if all products in the last process are done
         last_process = next(p for p in processes if p.is_last)
-        if last_process.products and all(product.state == 'D' for product in last_process.products):
+        if (len(last_process.products) == len(builder.products) and all(product.state == 'D' for product in last_process.products)):
             break
         tick += 1
 
