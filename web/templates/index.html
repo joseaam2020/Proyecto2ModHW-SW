@@ -1,26 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Simulation Setup</title>
-    <script src="{{ url_for('static', filename='index.js') }}" defer></script>
-</head>
-<body>
-    <h1>Simulation Setup</h1>
-    <form method="post" action="/simulate">
-        <label>Number of Products: <input type="number" name="num_products" min="1" value="5" required></label><br>
-        <div id="processes"></div>
-        <button type="button" onclick="addProcess()">Add process</button>
-        <button type="button" onclick="clearState()">Clear</button><br><br>
-        <button type="submit">Run Simulation</button>
-    </form>
-
-    <hr>
-
-    <h1>Available Reports</h1>
-    <ul>
-        {% for report in reports %}
-            <li><a href="{{ url_for('report', filename=report) }}">{{ report }}</a></li>
-        {% endfor %}
-    </ul>
-</body>
+<!-- Figma design faithfully translated to HTML. Images are hotlinked from Figma and may expire. -->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LinProd</title>
+    <link rel="stylesheet" href="/static/index.css" />
+    <script src="/static/index.js" defer></script>
+  </head>
+  <body>
+    <div class="outer-frame">
+      <div class="app-frame">
+        <div class="app-left">
+          <div class="left-autolayout">
+            <div class="home-frame">
+              <img
+                src="https://www.figma.com/api/mcp/asset/6093f56d-d362-44b8-aebd-58ad3af0546a"
+                alt="Home Icon"
+              />
+              <span>LinProd</span>
+            </div>
+            <div class="config-card">
+              <div class="config-section">
+                <div class="config-title">
+                  <img
+                    src="https://www.figma.com/api/mcp/asset/64a0dd4e-1f90-453f-a3e2-81956e9dad83"
+                    alt="Config Icon"
+                  />
+                  <span>Configuración</span>
+                </div>
+                <div class="config-row">
+                  <span>Cantidad de productos</span>
+                  <input class="config-input" type="number" min="0" step="1" />
+                </div>
+                <div class="add-process-section">
+                  <div class="add-process-label">Añadir procesos</div>
+                  <button class="add-process-btn">
+                    <img
+                      src="https://www.figma.com/api/mcp/asset/0a3713f0-2ac7-4a04-bdbf-15ee3b0934a8"
+                      alt="Añadir"
+                    />
+                  </button>
+                  <script>
+                    // Attach click handler to the add-process-btn
+                    document.addEventListener("DOMContentLoaded", function () {
+                      const btn = document.querySelector(".add-process-btn");
+                      if (btn) btn.onclick = addProcessFigma;
+                    });
+                  </script>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="app-right">
+          <div class="right-top">
+            <span class="linea-label">Línea de Producción</span>
+            <button class="iniciar-btn">Iniciar simulación</button>
+          </div>
+          <div class="right-bottom" id="right-bottom-process-list">
+            <!-- Process cards will be rendered here by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>

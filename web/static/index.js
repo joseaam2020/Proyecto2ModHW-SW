@@ -1,151 +1,302 @@
-let processCount = 0;
+// figma_export.js - Adds process frames to the config-card in figma_export.html
 
-// ── Persistence helpers ──────────────────────────────────────────────────────
 
-function saveState() {
-    const state = { processCount, processes: [] };
+// --- Persistent, removable, scrollable process frames ---
 
-    for (let i = 1; i <= processCount; i++) {
-        const tasksDiv = document.getElementById(`tasks_${i}`);
-        if (!tasksDiv) continue;
+const STORAGE_KEY = 'figmaProcesses';
+const PRODUCT_KEY = 'figmaNumProducts';
+const TASKS_KEY = 'figmaTaskDurations';
+let figmaProcesses = [];
 
-        const tasks = [];
-        for (const taskDiv of tasksDiv.children) {
-            const input = taskDiv.querySelector('input[type="number"]');
-            tasks.push(input ? input.value : '');
-        }
-        state.processes.push({ id: i, tasks });
-    }
 
-    localStorage.setItem('simulationState', JSON.stringify(state));
+function saveFigmaProcesses() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(figmaProcesses));
+    saveTaskDurations();
 }
 
-function loadState() {
-    const raw = localStorage.getItem('simulationState');
-    if (!raw) return;
-
-    const state = JSON.parse(raw);
-    processCount = 0;
-
-    for (const process of state.processes) {
-        addProcess();
-        for (const taskValue of process.tasks) {
-            addTask(processCount, taskValue);
-        }
+function saveNumProducts() {
+    const productInput = document.querySelector('.config-input[type="number"]');
+    if (productInput) {
+        localStorage.setItem(PRODUCT_KEY, productInput.value || '1');
     }
 }
 
-// ── Core functions ───────────────────────────────────────────────────────────
-
-function addProcess() {
-    processCount++;
-    const processesDiv = document.getElementById('processes');
-    const processDiv = document.createElement('div');
-    processDiv.className = 'process';
-    processDiv.id = `process_${processCount}`;
-    processDiv.innerHTML = `
-        <h3>
-            Process ${processCount}
-            <button type="button" onclick="removeProcess(${processCount})">Remove process</button>
-        </h3>
-        <div class="tasks" id="tasks_${processCount}"></div>
-        <button type="button" onclick="addTask(${processCount})">Add task</button>
-        <hr>
-    `;
-    processesDiv.appendChild(processDiv);
-    saveState();
+function loadNumProducts() {
+    return localStorage.getItem(PRODUCT_KEY) || '1';
 }
 
-function removeProcess(processId) {
-    const processDiv = document.getElementById(`process_${processId}`);
-    if (processDiv) {
-        processDiv.remove();
-        renumberProcesses();
-        saveState();
+function saveTaskDurations() {
+    // Save all task-input values as a nested array (processes -> tasks)
+    const allDurations = [];
+    document.querySelectorAll('.process-card').forEach(card => {
+        const taskInputs = card.querySelectorAll('.task-input');
+        const durations = [];
+        taskInputs.forEach(input => durations.push(input.value));
+        allDurations.push(durations);
+    });
+    localStorage.setItem(TASKS_KEY, JSON.stringify(allDurations));
+}
+
+function loadTaskDurations() {
+    try {
+        return JSON.parse(localStorage.getItem(TASKS_KEY)) || [];
+    } catch {
+        return [];
     }
 }
 
-function addTask(processId, value = '') {
-    const tasksDiv = document.getElementById(`tasks_${processId}`);
-    const taskCount = tasksDiv.children.length + 1;
-    const taskDiv = document.createElement('div');
-    taskDiv.className = 'task';
-    taskDiv.innerHTML = `
-        Task ${taskCount} time:
-        <input type="number" name="processes[${processId}][tasks][]" min="1" required value="${value}">
-        <button type="button" onclick="removeTask(this)">Remove</button>
-    `;
-
-    // Save state whenever an input value changes
-    taskDiv.querySelector('input').addEventListener('input', saveState);
-
-    tasksDiv.appendChild(taskDiv);
-    saveState();
+function loadFigmaProcesses() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    try {
+        return JSON.parse(raw);
+    } catch {
+        return [];
+    }
 }
 
-function removeTask(button) {
-    const taskDiv = button.closest('.task');
-    const tasksDiv = taskDiv.parentElement;
-    taskDiv.remove();
-    renumberTasks(tasksDiv);
-    saveState();
-}
 
-// ── Renumbering after removal ─────────────────────────────────────────────────
 
-function renumberProcesses() {
-    const processDivs = document.querySelectorAll('.process');
-    processCount = 0;
-    processDivs.forEach((processDiv) => {
-        processCount++;
-        const newId = processCount;
-        const oldId = parseInt(processDiv.id.split('_')[1]);
-
-        // Update process div id
-        processDiv.id = `process_${newId}`;
-
-        // Update heading
-        const h3 = processDiv.querySelector('h3');
-        h3.innerHTML = `
-            Process ${newId}
-            <button type="button" onclick="removeProcess(${newId})">Remove process</button>
-        `;
-
-        // Update tasks div id
-        const tasksDiv = processDiv.querySelector('.tasks');
-        tasksDiv.id = `tasks_${newId}`;
-
-        // Update add task button
-        const addTaskBtn = processDiv.querySelector('button[onclick^="addTask"]');
-        addTaskBtn.setAttribute('onclick', `addTask(${newId})`);
-
-        // Update task input names
-        const inputs = tasksDiv.querySelectorAll('input[type="number"]');
-        inputs.forEach((input) => {
-            input.name = `processes[${newId}][tasks][]`;
+function renderFigmaProcesses() {
+    // Sidebar process list
+    const container = document.getElementById('figma-process-list');
+    if (container) {
+        container.innerHTML = '';
+        figmaProcesses.forEach((proc, idx) => {
+            const processDiv = document.createElement('div');
+            processDiv.className = 'figma-process-frame process';
+            processDiv.textContent = `Proceso ${idx + 1}`;
+            // Remove button
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-process-btn';
+            removeBtn.textContent = '✕';
+            removeBtn.title = 'Eliminar proceso';
+            removeBtn.onclick = function() {
+                figmaProcesses.splice(idx, 1);
+                saveFigmaProcesses();
+                renderFigmaProcesses();
+            };
+            processDiv.appendChild(removeBtn);
+            container.appendChild(processDiv);
         });
+    }
 
-        renumberTasks(tasksDiv);
-    });
+    // Right-bottom process cards
+    const rightBottom = document.getElementById('right-bottom-process-list');
+    if (rightBottom) {
+        rightBottom.innerHTML = '';
+        // Calculate n for nxn grid
+        const n = Math.max(1, Math.ceil(Math.sqrt(figmaProcesses.length)));
+        rightBottom.style.display = 'grid';
+        rightBottom.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+        rightBottom.style.gridTemplateRows = `repeat(${n}, 1fr)`;
+
+        // Load persisted task durations
+        const persistedDurations = loadTaskDurations();
+
+        if (figmaProcesses.length === 0) {
+            const empty = document.createElement('span');
+            empty.className = 'empty-label';
+            empty.textContent = 'Tu línea de producción está vacía, Añade procesos y tareas para realizar la simulación';
+            rightBottom.appendChild(empty);
+        } else {
+            figmaProcesses.forEach((proc, idx) => {
+                rightBottom.appendChild(createProcessCard(idx, persistedDurations[idx]));
+            });
+        }
+    }
 }
 
-function renumberTasks(tasksDiv) {
-    const taskDivs = tasksDiv.querySelectorAll('.task');
-    taskDivs.forEach((taskDiv, index) => {
-        const input = taskDiv.querySelector('input[type="number"]');
-        taskDiv.childNodes[0].textContent = `Task ${index + 1} time: `;
-    });
+
+function createProcessCard(idx, persistedTaskDurations) {
+    // Main card
+    const card = document.createElement('div');
+    card.className = 'process-card';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'process-header';
+    const icon = document.createElement('img');
+    icon.src = 'https://www.figma.com/api/mcp/asset/6093f56d-d362-44b8-aebd-58ad3af0546a';
+    icon.alt = 'icon';
+    icon.className = 'icon';
+    const title = document.createElement('span');
+    title.className = 'process-title';
+    title.textContent = `Proceso #${idx + 1}`;
+    header.appendChild(icon);
+    header.appendChild(title);
+    card.appendChild(header);
+
+    // Tarea card (at least one by default)
+    const numTasks = figmaProcesses[idx].task || 1;
+    for (let i = 0; i < numTasks; i++) {
+        const duration = (persistedTaskDurations && persistedTaskDurations[i]) ? persistedTaskDurations[i] : '1';
+        card.appendChild(createTaskCard(i + 1, duration));
+    }
+
+    // Add tarea button
+    const addTaskBtn = document.createElement('button');
+    addTaskBtn.className = 'add-task-btn';
+    const img = document.createElement('img');
+    img.src = 'https://www.figma.com/api/mcp/asset/0a3713f0-2ac7-4a04-bdbf-15ee3b0934a8';
+    img.alt = 'icon';
+    img.className = 'icon';
+    addTaskBtn.appendChild(img);
+
+    addTaskBtn.onclick = function() {
+        figmaProcesses[idx].task = (figmaProcesses[idx].task || 1) + 1;
+        saveFigmaProcesses();
+        renderFigmaProcesses();
+    };
+    card.appendChild(addTaskBtn);
+
+    // Remove button (top right)
+    const removeTaskBtn = document.createElement('button');
+    removeTaskBtn.className = 'remove-task-btn';
+    removeTaskBtn.textContent = '✕';
+    removeTaskBtn.title = 'Eliminar Tarea';
+    removeTaskBtn.onclick = function() {
+        figmaProcesses[idx].task = Math.max(1, (figmaProcesses[idx].task || 1) - 1);
+        saveFigmaProcesses();
+        renderFigmaProcesses();
+    };
+    card.appendChild(removeTaskBtn);
+
+    return card;
 }
 
-// ── Clear state ──────────────────────────────────────────────────────────────
 
-function clearState() {
-    if (!confirm('Are you sure you want to clear all processes and tasks?')) return;
-    localStorage.removeItem('simulationState');
-    processCount = 0;
-    document.getElementById('processes').innerHTML = '';
+function createTaskCard(num, value) {
+    const tarea = document.createElement('div');
+    tarea.className = 'task-card';
+    // Header
+    const header = document.createElement('div');
+    header.className = 'task-header';
+    const icon = document.createElement('img');
+    icon.src = 'https://www.figma.com/api/mcp/asset/6093f56d-d362-44b8-aebd-58ad3af0546a';
+    icon.alt = 'icon';
+    icon.className = 'icon';
+    const title = document.createElement('span');
+    title.className = 'task-title';
+    title.textContent = `Tarea #${num}`;
+    header.appendChild(icon);
+    header.appendChild(title);
+    tarea.appendChild(header);
+    // Body
+    const body = document.createElement('div');
+    body.className = 'task-body';
+    const label = document.createElement('span');
+    label.className = 'task-label';
+    label.textContent = 'Añadir duración';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'task-input';
+    input.value = value || '1';
+    input.min = '1';
+    input.step = '1';
+    // Save on change
+    input.addEventListener('input', saveTaskDurations);
+    body.appendChild(label);
+    body.appendChild(input);
+    tarea.appendChild(body);
+    return tarea;
 }
 
-// ── On page load, restore saved state ───────────────────────────────────────
+function addProcessFigma() {
+    figmaProcesses.push({ task: 1 });
+    saveFigmaProcesses();
+    renderFigmaProcesses();
+}
 
-document.addEventListener('DOMContentLoaded', loadState);
+// On page load, set up scrollable container and render
+document.addEventListener('DOMContentLoaded', function() {
+    // If not present, create the scrollable process list container
+    let processList = document.getElementById('figma-process-list');
+    if (!processList) {
+        // Find the config-section inside the config-card
+        const configSection = document.querySelector('.config-card .config-section');
+        if (configSection) {
+            processList = document.createElement('div');
+            processList.id = 'figma-process-list';
+            processList.className = 'figma-process-list-scroll';
+            // Insert after add-process-section
+            const addSection = configSection.querySelector('.add-process-section');
+            if (addSection && addSection.nextSibling) {
+                configSection.insertBefore(processList, addSection.nextSibling);
+            } else {
+                configSection.appendChild(processList);
+            }
+        }
+    }
+    figmaProcesses = loadFigmaProcesses();
+
+    // Set number of products from storage
+    const productInput = document.querySelector('.config-input[type="number"]');
+    if (productInput) {
+        productInput.value = loadNumProducts();
+        productInput.addEventListener('input', function() {
+            saveNumProducts();
+        });
+    }
+
+    renderFigmaProcesses();
+
+    // Add event listener to iniciar-btn
+    const iniciarBtn = document.querySelector('.iniciar-btn');
+    if (iniciarBtn) {
+        iniciarBtn.addEventListener('click', function() {
+            // Get number of products
+            const productInput = document.querySelector('.config-input[type="number"]');
+            let numProducts = 1;
+            if (productInput && productInput.value) {
+                numProducts = parseInt(productInput.value, 10) || 1;
+            }
+            saveNumProducts();
+            saveTaskDurations();
+
+            // Collect processes and tasks
+            const processes = [];
+            figmaProcesses.forEach((proc, idx) => {
+                // For each process, get the durations from the rendered task inputs
+                const processCard = document.querySelectorAll('.process-card')[idx];
+                const taskInputs = processCard ? processCard.querySelectorAll('.task-input') : [];
+                const tasks = [];
+                taskInputs.forEach(input => {
+                    const val = parseInt(input.value, 10);
+                    if (!isNaN(val) && val > 0) tasks.push(val);
+                });
+                // Fallback: if no tasks found, use 1
+                if (tasks.length === 0) tasks.push(1);
+                processes.push({ tasks });
+            });
+
+            // Build form data
+            const formData = new URLSearchParams();
+            formData.append('num_products', numProducts);
+            processes.forEach((proc, i) => {
+                proc.tasks.forEach((task, j) => {
+                    formData.append(`processes[${i+1}][tasks][]`, task);
+                });
+            });
+
+            // POST to /simulate
+            fetch('/simulate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString(),
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    window.location.reload();
+                }
+            })
+            .catch(err => {
+                alert('Error al iniciar la simulación: ' + err);
+            });
+        });
+    }
+});
