@@ -104,12 +104,24 @@ function togglePause() {
 // figma_export.js - Adds process frames to the config-card in figma_export.html
 
 
+
 // --- Persistent, removable, scrollable process frames ---
 
 const STORAGE_KEY = 'figmaProcesses';
 const PRODUCT_KEY = 'figmaNumProducts';
 const TASKS_KEY = 'figmaTaskDurations';
+const EXEC_TIME_KEY = 'figmaExecTime';
 let figmaProcesses = [];
+function saveExecTime() {
+    const execInput = document.querySelector('.execution-time-input');
+    if (execInput) {
+        localStorage.setItem(EXEC_TIME_KEY, execInput.value || '500');
+    }
+}
+
+function loadExecTime() {
+    return localStorage.getItem(EXEC_TIME_KEY) || '500';
+}
 
 
 function saveFigmaProcesses() {
@@ -365,12 +377,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     figmaProcesses = loadFigmaProcesses();
 
+
     // Set number of products from storage
     const productInput = document.querySelector('.config-input[type="number"]');
     if (productInput) {
         productInput.value = loadNumProducts();
         productInput.addEventListener('input', function() {
             saveNumProducts();
+        });
+    }
+
+    // Set execution time from storage, default 500
+    const execInput = document.querySelector('.execution-time-input');
+    if (execInput) {
+        execInput.value = loadExecTime();
+        execInput.addEventListener('input', function() {
+            saveExecTime();
         });
     }
 
