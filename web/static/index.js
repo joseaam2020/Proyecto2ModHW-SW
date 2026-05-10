@@ -34,7 +34,13 @@ function queueNextTick(nextTick) {
     }, getExecutionDelay());
 }
 
-function updateUIForTick(tickData) {
+function updateUIForTick(tickData, tickNumber) {
+    // Update tick-input if present
+    const tickInput = document.querySelector('.tick-input');
+    if (tickInput) {
+        tickInput.value = tickNumber || currentTick;
+    }
+
     // Clear all boxes/icons first
     document.querySelectorAll('.task-left').forEach(left => left.innerHTML = '');
     document.querySelectorAll('.task-right-right').forEach(right => right.innerHTML = '');
@@ -80,7 +86,7 @@ function animateSimulation(tick = currentTick) {
     if (isPaused) return;
     loadTickReport(tick)
         .then(tickData => {
-            updateUIForTick(tickData);
+            updateUIForTick(tickData, tick);
             currentTick = tick + 1;
             queueNextTick(currentTick);
         })
