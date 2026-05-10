@@ -473,6 +473,48 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Manual step controls (only while paused)
+    const previousBtn = document.getElementById('previous-btn');
+    if (previousBtn) {
+        previousBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!playbackStarted || !isPaused) return;
+
+            // currentTick points to the next tick to play, so previous shown tick is currentTick - 1.
+            const targetTick = Math.max(1, currentTick - 2);
+            loadTickReport(targetTick)
+                .then(tickData => {
+                    updateUIForTick(tickData, targetTick);
+                    currentTick = targetTick + 1;
+                })
+                .catch(() => {});
+        });
+    }
+
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (!playbackStarted || !isPaused) return;
+
+            const targetTick = currentTick;
+            loadTickReport(targetTick)
+                .then(tickData => {
+                    updateUIForTick(tickData, targetTick);
+                    currentTick = targetTick + 1;
+                })
+                .catch(() => {
+                    // If there are no more reports, loop to tick 1.
+                    loadTickReport(1)
+                        .then(tickData => {
+                            updateUIForTick(tickData, 1);
+                            currentTick = 2;
+                        })
+                        .catch(() => {});
+                });
+        });
+    }
 });
 
 window.addEventListener('load', function() {
