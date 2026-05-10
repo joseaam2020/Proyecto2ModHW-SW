@@ -229,18 +229,32 @@ body {
   font-weight: 600;
   color: #222;
 }
-.iniciar-btn {
+.execution-time-section {
+  padding: 8px 16px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.controls-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.control-buttons {
   background: #1eb781;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 12px 28px;
+  padding: 5px 20px;
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 20px;
 }
-.iniciar-btn:hover {
+.control-buttons:hover {
   background: #125bb5;
 }
 .right-bottom {
@@ -258,7 +272,7 @@ body {
 }
 .process-card {
   display: flex;
-  width: 500px;
+  width: 600px;
   padding: 10px;
   flex-direction: column;
   align-items: flex-start;
@@ -285,10 +299,29 @@ body {
   height: 18px;
   padding: 10px 10px 10px 10px;
 }
+.icon-robot-arm {
+  width: 40px;
+  height: 40;
+  padding: 10px 10px 10px 10px;
+}
+.icon-box {
+  width: 50px;
+  height: 50px;
+  padding: 50px;
+}
 .task-card {
   display: flex;
-  flex-direction: column;
-  height: 65px;
+  flex-direction: row;
+  width: 500px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.task-right {
+  display: flex;
+  flex-direction: row;
+  height: 100px;
   width: 300px;
   padding: 11.5px 107.688px 11.5px 11.5px;
   align-items: space-between;
@@ -296,6 +329,22 @@ body {
   border-radius: 6.75px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: #fff;
+}
+.task-right-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.task-left {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  height: 100px;
+  width: auto;
+  align-items: space-between;
+  align-self: stretch;
+  border-radius: 6.75px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #ffffff;
 }
 .task-header {
   font-size: 16px;
@@ -315,7 +364,7 @@ body {
 .add-task-btn {
   background: rgba(22, 117, 233, 0.3);
   border-radius: 7px;
-  width: 84%;
+  width: 70%;
   height: 32px;
   display: flex;
   align-items: center;
@@ -336,7 +385,7 @@ body {
 .remove-task-btn {
   background: rgba(233, 22, 75, 0.3);
   border-radius: 7px;
-  width: 84%;
+  width: 70%;
   height: 32px;
   display: flex;
   align-items: center;

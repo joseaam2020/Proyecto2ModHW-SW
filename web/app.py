@@ -1,5 +1,5 @@
 # web/app.py
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, abort
 from flask import request, redirect, url_for
 from typing import List
 from models.pipeline_builder import PipelineBuilder
@@ -22,8 +22,15 @@ def index():
 
 @app.route('/report/<filename>')
 def report(filename):
-    # Show a specific report
-    with open(os.path.join(REPORTS_DIR, filename)) as f:
+    file_path = os.path.join(REPORTS_DIR, filename)
+    if not os.path.isfile(file_path):
+        abort(404)
+
+    if filename.endswith('.json'):
+        return send_from_directory(REPORTS_DIR, filename, mimetype='application/json')
+
+    # Fallback for the human-readable report page.
+    with open(file_path) as f:
         report = json.load(f)
     return render_template('report.html', report=report, filename=filename)
 

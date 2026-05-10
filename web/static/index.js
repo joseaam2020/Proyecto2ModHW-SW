@@ -1,3 +1,106 @@
+// --- Simulation Animation Loop ---
+let currentTick = 1;
+let isPaused = false;
+let animationTimeout = null;
+let playbackStarted = false;
+
+const AUTO_PLAY_KEY = 'linprodAutoPlayAfterSimulate';
+
+function padTick(num) {
+    return String(num).padStart(3, '0');
+}
+
+function loadTickReport(tick) {
+    return fetch(`/report/report_tick_${padTick(tick)}.json`)
+        .then(res => {
+            if (!res.ok) throw new Error('No more ticks');
+            return res.json();
+        });
+}
+
+function getExecutionDelay() {
+    return parseInt(document.querySelector('.execution-time-input')?.value, 10) || 1000;
+}
+
+function setStartButtonState(isRunning) {
+    const btn = document.getElementById('iniciar-btn');
+    if (btn) btn.textContent = isRunning ? '⏸' : '▶';
+}
+
+function queueNextTick(nextTick) {
+    if (isPaused) return;
+    animationTimeout = setTimeout(() => {
+        animateSimulation(nextTick);
+    }, getExecutionDelay());
+}
+
+function updateUIForTick(tickData) {
+    // Clear all boxes/icons first
+    document.querySelectorAll('.task-left').forEach(left => left.innerHTML = '');
+    document.querySelectorAll('.task-right-right').forEach(right => right.innerHTML = '');
+
+    // For each process in the tick
+    tickData.forEach((process, pIdx) => {
+        process.tasks.forEach((task, tIdx) => {
+            const processCard = document.querySelectorAll('.process-card')[pIdx];
+            if (!processCard) return;
+            const taskCards = processCard.querySelectorAll('.task-card');
+            const taskCard = taskCards[tIdx];
+            if (!taskCard) return;
+
+            // Queue as grid of boxes in .task-left
+            const left = taskCard.querySelector('.task-left');
+            if (left) {
+                left.innerHTML = '';
+                const queue = task.queue_product_ids || [];
+                queue.forEach(() => {
+                    const box = document.createElement('img');
+                    box.src = '/static/imgs/box.svg';
+                    box.className = 'icon';
+                    left.appendChild(box);
+                });
+            }
+
+            // Show/hide box in .task-right-right if processing
+            const right = taskCard.querySelector('.task-right-right');
+            if (right) {
+                right.innerHTML = '';
+                if (task.state === 'P' && task.product_in_process_id) {
+                    const box = document.createElement('img');
+                    box.src = '/static/imgs/box.svg';
+                    box.className = 'icon-box';
+                    right.appendChild(box);
+                }
+            }
+        });
+    });
+}
+
+function animateSimulation(tick = currentTick) {
+    if (isPaused) return;
+    loadTickReport(tick)
+        .then(tickData => {
+            updateUIForTick(tickData);
+            currentTick = tick + 1;
+            queueNextTick(currentTick);
+        })
+        .catch(() => {
+            // No more ticks, loop back to tick 1.
+            currentTick = 1;
+            queueNextTick(1);
+        });
+}
+
+function togglePause() {
+    isPaused = !isPaused;
+    setStartButtonState(!isPaused);
+    if (!isPaused) {
+        playbackStarted = true;
+        animateSimulation(currentTick);
+    } else {
+        clearTimeout(animationTimeout);
+    }
+}
 // figma_export.js - Adds process frames to the config-card in figma_export.html
 
 
@@ -117,7 +220,7 @@ function createProcessCard(idx, persistedTaskDurations) {
     const header = document.createElement('div');
     header.className = 'process-header';
     const icon = document.createElement('img');
-    icon.src = 'https://www.figma.com/api/mcp/asset/6093f56d-d362-44b8-aebd-58ad3af0546a';
+    icon.src = '/static/imgs/Home.svg';
     icon.alt = 'icon';
     icon.className = 'icon';
     const title = document.createElement('span');
@@ -138,7 +241,7 @@ function createProcessCard(idx, persistedTaskDurations) {
     const addTaskBtn = document.createElement('button');
     addTaskBtn.className = 'add-task-btn';
     const img = document.createElement('img');
-    img.src = 'https://www.figma.com/api/mcp/asset/0a3713f0-2ac7-4a04-bdbf-15ee3b0934a8';
+    img.src = '/static/imgs/BlueCross.svg';
     img.alt = 'icon';
     img.className = 'icon';
     addTaskBtn.appendChild(img);
@@ -169,19 +272,29 @@ function createProcessCard(idx, persistedTaskDurations) {
 function createTaskCard(num, value) {
     const tarea = document.createElement('div');
     tarea.className = 'task-card';
+    
+    // Right side (Header, time input, box)
+    const right = document.createElement('div');
+    right.className = 'task-right';
+
+    // Right side right (header and time input)
+    const rightLeft = document.createElement('div');
+    rightLeft.className = 'task-right-left';
+
     // Header
     const header = document.createElement('div');
     header.className = 'task-header';
     const icon = document.createElement('img');
-    icon.src = 'https://www.figma.com/api/mcp/asset/6093f56d-d362-44b8-aebd-58ad3af0546a';
+    icon.src = '/static/imgs/robot-arm.svg';
     icon.alt = 'icon';
-    icon.className = 'icon';
+    icon.className = 'icon-robot-arm';
     const title = document.createElement('span');
     title.className = 'task-title';
     title.textContent = `Tarea #${num}`;
     header.appendChild(icon);
     header.appendChild(title);
-    tarea.appendChild(header);
+    rightLeft.appendChild(header);
+
     // Body
     const body = document.createElement('div');
     body.className = 'task-body';
@@ -194,11 +307,33 @@ function createTaskCard(num, value) {
     input.value = value || '1';
     input.min = '1';
     input.step = '1';
+
     // Save on change
     input.addEventListener('input', saveTaskDurations);
     body.appendChild(label);
     body.appendChild(input);
-    tarea.appendChild(body);
+
+    rightLeft.appendChild(body);
+
+    // Box
+    const rightRight = document.createElement('div');
+    rightRight.className = 'task-right-right';
+
+    const boxImg = document.createElement('img');
+    boxImg.src = '/static/imgs/box.svg';
+    boxImg.alt = 'box';
+    boxImg.className = 'icon-box';
+    rightRight.appendChild(boxImg);
+
+    right.appendChild(rightLeft);
+    right.appendChild(rightRight);
+    tarea.appendChild(right);
+
+    // Left side (icon grid)
+    const left = document.createElement('div');
+    left.className = 'task-left';
+    tarea.appendChild(left);
+
     return tarea;
 }
 
@@ -242,61 +377,101 @@ document.addEventListener('DOMContentLoaded', function() {
     renderFigmaProcesses();
 
     // Add event listener to iniciar-btn
-    const iniciarBtn = document.querySelector('.iniciar-btn');
+    const iniciarBtn = document.getElementById('iniciar-btn');
     if (iniciarBtn) {
-        iniciarBtn.addEventListener('click', function() {
-            // Get number of products
-            const productInput = document.querySelector('.config-input[type="number"]');
-            let numProducts = 1;
-            if (productInput && productInput.value) {
-                numProducts = parseInt(productInput.value, 10) || 1;
-            }
-            saveNumProducts();
-            saveTaskDurations();
+        iniciarBtn.addEventListener('click', function(e) {
+            e.preventDefault();
 
-            // Collect processes and tasks
-            const processes = [];
-            figmaProcesses.forEach((proc, idx) => {
-                // For each process, get the durations from the rendered task inputs
-                const processCard = document.querySelectorAll('.process-card')[idx];
-                const taskInputs = processCard ? processCard.querySelectorAll('.task-input') : [];
-                const tasks = [];
-                taskInputs.forEach(input => {
-                    const val = parseInt(input.value, 10);
-                    if (!isNaN(val) && val > 0) tasks.push(val);
-                });
-                // Fallback: if no tasks found, use 1
-                if (tasks.length === 0) tasks.push(1);
-                processes.push({ tasks });
-            });
-
-            // Build form data
-            const formData = new URLSearchParams();
-            formData.append('num_products', numProducts);
-            processes.forEach((proc, i) => {
-                proc.tasks.forEach((task, j) => {
-                    formData.append(`processes[${i+1}][tasks][]`, task);
-                });
-            });
-
-            // POST to /simulate
-            fetch('/simulate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: formData.toString(),
-            })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    window.location.reload();
+            if (!playbackStarted) {
+                // First start: POST to /simulate and ask the next page load to autoplay.
+                const productInput = document.querySelector('.config-input[type="number"]');
+                let numProducts = 1;
+                if (productInput && productInput.value) {
+                    numProducts = parseInt(productInput.value, 10) || 1;
                 }
-            })
-            .catch(err => {
-                alert('Error al iniciar la simulación: ' + err);
-            });
+                saveNumProducts();
+                saveTaskDurations();
+
+                // Collect processes and tasks
+                const processes = [];
+                figmaProcesses.forEach((proc, idx) => {
+                    // For each process, get the durations from the rendered task inputs
+                    const processCard = document.querySelectorAll('.process-card')[idx];
+                    const taskInputs = processCard ? processCard.querySelectorAll('.task-input') : [];
+                    const tasks = [];
+                    taskInputs.forEach(input => {
+                        const val = parseInt(input.value, 10);
+                        if (!isNaN(val) && val > 0) tasks.push(val);
+                    });
+                    // Fallback: if no tasks found, use 1
+                    if (tasks.length === 0) tasks.push(1);
+                    processes.push({ tasks });
+                });
+
+                // Build form data
+                const formData = new URLSearchParams();
+                formData.append('num_products', numProducts);
+                processes.forEach((proc, i) => {
+                    proc.tasks.forEach((task, j) => {
+                        formData.append(`processes[${i+1}][tasks][]`, task);
+                    });
+                });
+
+                sessionStorage.setItem(AUTO_PLAY_KEY, '1');
+                setStartButtonState(true);
+
+                // POST to /simulate
+                fetch('/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString(),
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        window.location.reload();
+                    }
+                })
+                .catch(err => {
+                    alert('Error al iniciar la simulación: ' + err);
+                });
+            } else if (isPaused) {
+                togglePause();
+            } else {
+                togglePause();
+            }
         });
     }
+});
+
+window.addEventListener('load', function() {
+    const btn = document.getElementById('iniciar-btn');
+    if (btn) btn.textContent = '▶';
+
+    fetch('/report/report_tick_001.json')
+        .then(res => {
+            if (res.ok) {
+                currentTick = 1;
+                const shouldAutoPlay = sessionStorage.getItem(AUTO_PLAY_KEY) === '1';
+                if (shouldAutoPlay) {
+                    sessionStorage.removeItem(AUTO_PLAY_KEY);
+                    playbackStarted = true;
+                    isPaused = false;
+                    setStartButtonState(true);
+                    animateSimulation(1);
+                } else {
+                    isPaused = true;
+                    playbackStarted = false;
+                    setStartButtonState(false);
+                }
+            }
+        })
+        .catch(() => {
+            isPaused = true;
+            playbackStarted = false;
+            setStartButtonState(false);
+        });
 });

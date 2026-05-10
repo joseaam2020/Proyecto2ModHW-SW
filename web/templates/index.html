@@ -15,7 +15,7 @@
           <div class="left-autolayout">
             <div class="home-frame">
               <img
-                src="https://www.figma.com/api/mcp/asset/6093f56d-d362-44b8-aebd-58ad3af0546a"
+                  src="/static/imgs/Home.svg"
                 alt="Home Icon"
               />
               <span>LinProd</span>
@@ -24,7 +24,7 @@
               <div class="config-section">
                 <div class="config-title">
                   <img
-                    src="https://www.figma.com/api/mcp/asset/64a0dd4e-1f90-453f-a3e2-81956e9dad83"
+                    src="/static/imgs/ConfigIcon.svg"
                     alt="Config Icon"
                   />
                   <span>Configuración</span>
@@ -37,7 +37,7 @@
                   <div class="add-process-label">Añadir procesos</div>
                   <button class="add-process-btn">
                     <img
-                      src="https://www.figma.com/api/mcp/asset/0a3713f0-2ac7-4a04-bdbf-15ee3b0934a8"
+                      src="/static/imgs/BlueCross.svg"
                       alt="Añadir"
                     />
                   </button>
@@ -56,7 +56,18 @@
         <div class="app-right">
           <div class="right-top">
             <span class="linea-label">Línea de Producción</span>
-            <button class="iniciar-btn">Iniciar simulación</button>
+            <div>
+              <div class="execution-time-section">
+                <span class="execution-time-label">Tiempo de Ejecución</span>
+                <input class="execution-time-input" type="number" min="0" step="1" />
+                <span class="units-label">ms</span>
+              </div>
+              <div class="controls-section">
+                <button class="control-buttons">⏪︎</button>
+                <button class="control-buttons" id="iniciar-btn">▶</button>
+                <button class="control-buttons">⏩︎︎</button>
+              </div>
+            </div>
           </div>
           <div class="right-bottom" id="right-bottom-process-list">
             <!-- Process cards will be rendered here by JS -->
