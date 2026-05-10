@@ -5,6 +5,7 @@ let animationTimeout = null;
 let playbackStarted = false;
 
 const AUTO_PLAY_KEY = 'linprodAutoPlayAfterSimulate';
+const COLOR_PALETTE_KEY = 'linprodColorPalette';
 
 function padTick(num) {
     return String(num).padStart(3, '0');
@@ -20,6 +21,79 @@ function loadTickReport(tick) {
 
 function getExecutionDelay() {
     return parseInt(document.querySelector('.execution-time-input')?.value, 10) || 1000;
+}
+
+function generateRandomColor() {
+    const hue = Math.floor(Math.random() * 360);
+    const saturation = 70 + Math.floor(Math.random() * 20);
+    const lightness = 48 + Math.floor(Math.random() * 14);
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+function generateColorPalette(numProducts) {
+    const palette = [];
+    for (let index = 0; index < numProducts; index += 1) {
+        palette.push(generateRandomColor());
+    }
+    return palette;
+}
+
+function saveColorPalette(palette) {
+    sessionStorage.setItem(COLOR_PALETTE_KEY, JSON.stringify(palette));
+}
+
+function loadColorPalette() {
+    const raw = sessionStorage.getItem(COLOR_PALETTE_KEY);
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch {
+        return null;
+    }
+}
+
+function getProductColor(productId) {
+    const palette = currentColorPalette || loadColorPalette();
+    if (!palette || typeof productId !== 'number') return null;
+    const index = productId - 1;
+    if (index < 0 || index >= palette.length) return null;
+    return palette[index];
+}
+
+function createColoredBox(productId) {
+    const color = getProductColor(productId);
+    if (!color) return null;
+
+    const box = document.createElement('span');
+    box.className = 'colored-product-icon';
+    box.dataset.productId = String(productId);
+    box.style.backgroundColor = color;
+    box.style.maskImage = 'url(/static/imgs/box.svg)';
+    box.style.webkitMaskImage = 'url(/static/imgs/box.svg)';
+    box.style.maskRepeat = 'no-repeat';
+    box.style.webkitMaskRepeat = 'no-repeat';
+    box.style.maskPosition = 'center';
+    box.style.webkitMaskPosition = 'center';
+    box.style.maskSize = 'contain';
+    box.style.webkitMaskSize = 'contain';
+    return box;
+}
+
+function createDefaultBox() {
+    const box = document.createElement('img');
+    box.src = '/static/imgs/box.svg';
+    box.alt = 'box';
+    box.className = 'icon-box';
+    return box;
+}
+
+function createProductBox(productId) {
+    try {
+        return createColoredBox(productId) || createDefaultBox();
+    } catch {
+        return createDefaultBox();
+    }
 }
 
 function setStartButtonState(isRunning) {
@@ -59,11 +133,8 @@ function updateUIForTick(tickData, tickNumber) {
             if (left) {
                 left.innerHTML = '';
                 const queue = task.queue_product_ids || [];
-                queue.forEach(() => {
-                    const box = document.createElement('img');
-                    box.src = '/static/imgs/box.svg';
-                    box.className = 'icon';
-                    left.appendChild(box);
+                queue.forEach(productId => {
+                    left.appendChild(createProductBox(productId));
                 });
             }
 
@@ -72,10 +143,7 @@ function updateUIForTick(tickData, tickNumber) {
             if (right) {
                 right.innerHTML = '';
                 if (task.state === 'P' && task.product_in_process_id) {
-                    const box = document.createElement('img');
-                    box.src = '/static/imgs/box.svg';
-                    box.className = 'icon-box';
-                    right.appendChild(box);
+                    right.appendChild(createProductBox(task.product_in_process_id));
                 }
             }
         });
@@ -446,6 +514,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 sessionStorage.setItem(AUTO_PLAY_KEY, '1');
+                const palette = generateColorPalette(numProducts);
+                saveColorPalette(palette);
+                currentColorPalette = palette;
                 setStartButtonState(true);
 
                 // POST to /simulate
@@ -525,6 +596,7 @@ window.addEventListener('load', function() {
         .then(res => {
             if (res.ok) {
                 currentTick = 1;
+                currentColorPalette = loadColorPalette();
                 const shouldAutoPlay = sessionStorage.getItem(AUTO_PLAY_KEY) === '1';
                 if (shouldAutoPlay) {
                     sessionStorage.removeItem(AUTO_PLAY_KEY);
