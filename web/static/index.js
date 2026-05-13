@@ -474,6 +474,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     figmaProcesses = loadFigmaProcesses();
 
+    // Add error message container if not present
+    let errorMsg = document.getElementById('validation-error-msg');
+    if (!errorMsg) {
+        errorMsg = document.createElement('div');
+        errorMsg.id = 'validation-error-msg';
+        errorMsg.style.display = 'none';
+        errorMsg.style.color = 'red';
+        errorMsg.style.margin = '10px 0';
+        errorMsg.style.fontWeight = 'bold';
+        errorMsg.style.background = '#fff0f0';
+        errorMsg.style.border = '1px solid #e57373';
+        errorMsg.style.padding = '8px 12px';
+        errorMsg.style.borderRadius = '6px';
+        const configCard = document.querySelector('.config-card');
+        if (configCard) {
+            configCard.insertBefore(errorMsg, configCard.firstChild);
+        } else {
+            document.body.insertBefore(errorMsg, document.body.firstChild);
+        }
+    }
+
 
     // Set number of products from storage
     const productInput = document.querySelector('.config-input[type="number"]');
@@ -502,17 +523,56 @@ document.addEventListener('DOMContentLoaded', function() {
         iniciarBtn.addEventListener('click', function(e) {
             e.preventDefault();
 
+            // Hide previous error
+            errorMsg.style.display = 'none';
+            errorMsg.textContent = '';
+
             if (figmaProcesses.length === 0) {
+                return;
+            }
+
+            // --- Validation ---
+            let hasError = false;
+            let errorMessages = [];
+
+            // Validate number of products
+            const productInput = document.querySelector('.config-input[type="number"]');
+            let numProducts = 1;
+            if (productInput && productInput.value) {
+                numProducts = Number(productInput.value);
+                if (!Number.isInteger(numProducts) || numProducts < 1) {
+                    hasError = true;
+                    errorMessages.push('La cantidad de productos debe ser un número entero mayor o igual a 1.');
+                    productInput.classList.add('input-error');
+                } else {
+                    productInput.classList.remove('input-error');
+                }
+            }
+
+            // Validate all task durations
+            const processCards = document.querySelectorAll('.process-card');
+            processCards.forEach((processCard, idx) => {
+                const taskInputs = processCard.querySelectorAll('.task-input');
+                taskInputs.forEach((input, tIdx) => {
+                    const val = Number(input.value);
+                    if (!Number.isInteger(val) || val < 1) {
+                        hasError = true;
+                        errorMessages.push(`La duración de la tarea #${tIdx + 1} del proceso #${idx + 1} debe ser un número entero mayor o igual a 1.`);
+                        input.classList.add('input-error');
+                    } else {
+                        input.classList.remove('input-error');
+                    }
+                });
+            });
+
+            if (hasError) {
+                errorMsg.textContent = errorMessages.join(' ');
+                errorMsg.style.display = 'block';
                 return;
             }
 
             if (!playbackStarted) {
                 // First start: POST to /simulate and ask the next page load to autoplay.
-                const productInput = document.querySelector('.config-input[type="number"]');
-                let numProducts = 1;
-                if (productInput && productInput.value) {
-                    numProducts = parseInt(productInput.value, 10) || 1;
-                }
                 saveNumProducts();
                 saveTaskDurations();
 
