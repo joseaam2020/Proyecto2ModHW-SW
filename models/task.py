@@ -49,7 +49,7 @@ class Task:
 
     def tick(self) -> None:
         """Advances the task by one tick, processing products as needed."""
-        print(f"Queue for Task {self.id}: {self.queue}")
+        #print(f"Queue for Task {self.id}: {self.queue}")
         if self.state == 'NP' and self.queue:
             self.product_in_process = self.queue.pop(0)
             self.product_in_process.change_state_processing()

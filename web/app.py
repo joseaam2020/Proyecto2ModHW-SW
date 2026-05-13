@@ -48,6 +48,9 @@ def simulate():
         processes_data.append({"tasks": [int(t) for t in task_times]})
         i += 1
 
+    if not processes_data:
+        return redirect(url_for('index'))
+
     # Prepare product data (IDs 1..num_products)
     products_data = list(range(1, num_products + 1))
 

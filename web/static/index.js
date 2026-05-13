@@ -101,6 +101,13 @@ function setStartButtonState(isRunning) {
     if (btn) btn.textContent = isRunning ? '⏸' : '▶';
 }
 
+function setStartButtonAvailability(hasProcesses) {
+    const btn = document.getElementById('iniciar-btn');
+    if (!btn) return;
+    btn.disabled = !hasProcesses;
+    btn.title = hasProcesses ? '' : 'Añade al menos un proceso para iniciar la simulación';
+}
+
 function queueNextTick(nextTick) {
     if (isPaused) return;
     animationTimeout = setTimeout(() => {
@@ -174,6 +181,13 @@ function togglePause() {
     } else {
         clearTimeout(animationTimeout);
     }
+}
+
+function resetPlaybackState() {
+    playbackStarted = false;
+    isPaused = true;
+    clearTimeout(animationTimeout);
+    setStartButtonState(false);
 }
 // figma_export.js - Adds process frames to the config-card in figma_export.html
 
@@ -261,6 +275,7 @@ function renderFigmaProcesses() {
             removeBtn.textContent = '✕';
             removeBtn.title = 'Eliminar proceso';
             removeBtn.onclick = function() {
+                resetPlaybackState();
                 figmaProcesses.splice(idx, 1);
                 saveFigmaProcesses();
                 renderFigmaProcesses();
@@ -294,6 +309,8 @@ function renderFigmaProcesses() {
             });
         }
     }
+
+    setStartButtonAvailability(figmaProcesses.length > 0);
 }
 
 
@@ -333,6 +350,7 @@ function createProcessCard(idx, persistedTaskDurations) {
     addTaskBtn.appendChild(img);
 
     addTaskBtn.onclick = function() {
+        resetPlaybackState();
         figmaProcesses[idx].task = (figmaProcesses[idx].task || 1) + 1;
         saveFigmaProcesses();
         renderFigmaProcesses();
@@ -345,6 +363,7 @@ function createProcessCard(idx, persistedTaskDurations) {
     removeTaskBtn.textContent = '✕';
     removeTaskBtn.title = 'Eliminar Tarea';
     removeTaskBtn.onclick = function() {
+        resetPlaybackState();
         figmaProcesses[idx].task = Math.max(1, (figmaProcesses[idx].task || 1) - 1);
         saveFigmaProcesses();
         renderFigmaProcesses();
@@ -395,7 +414,10 @@ function createTaskCard(num, value) {
     input.step = '1';
 
     // Save on change
-    input.addEventListener('input', saveTaskDurations);
+    input.addEventListener('input', function() {
+        resetPlaybackState();
+        saveTaskDurations();
+    });
     body.appendChild(label);
     body.appendChild(input);
 
@@ -424,6 +446,7 @@ function createTaskCard(num, value) {
 }
 
 function addProcessFigma() {
+    resetPlaybackState();
     figmaProcesses.push({ task: 1 });
     saveFigmaProcesses();
     renderFigmaProcesses();
@@ -457,6 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (productInput) {
         productInput.value = loadNumProducts();
         productInput.addEventListener('input', function() {
+            resetPlaybackState();
             saveNumProducts();
         });
     }
@@ -477,6 +501,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (iniciarBtn) {
         iniciarBtn.addEventListener('click', function(e) {
             e.preventDefault();
+
+            if (figmaProcesses.length === 0) {
+                return;
+            }
 
             if (!playbackStarted) {
                 // First start: POST to /simulate and ask the next page load to autoplay.
@@ -609,11 +637,13 @@ window.addEventListener('load', function() {
                     playbackStarted = false;
                     setStartButtonState(false);
                 }
+                setStartButtonAvailability(figmaProcesses.length > 0);
             }
         })
         .catch(() => {
             isPaused = true;
             playbackStarted = false;
             setStartButtonState(false);
+            setStartButtonAvailability(figmaProcesses.length > 0);
         });
 });
