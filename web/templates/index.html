@@ -78,21 +78,20 @@
               <button class="control-buttons" id="next-btn">⏩︎︎</button>
             </div>
 
-            <!-- ── Botón de informe general ──────────────────────────── -->
+            <!-- ── Botón que redirige a la página de reportes ───────── -->
             {% if reports %}
-            <form action="{{ url_for('informe') }}" method="post"
-                  style="display:inline; margin-left: 8px;">
-              <button type="submit" class="control-buttons report-btn"
-                      title="Descargar informe general en PDF">
-                <img src="/static/imgs/ReportIcon.svg"
-                     alt="Informe"
-                     class="report-btn-icon"
-                     onerror="this.style.display='none';
-                              this.nextSibling.style.display='inline';" />
-                <span class="report-btn-fallback" style="display:none;">📄</span>
-                Informe
-              </button>
-            </form>
+            <a href="{{ url_for('reportes_page') }}"
+               class="control-buttons report-btn"
+               style="margin-left: 8px; text-decoration: none;"
+               title="Ver y descargar el informe general">
+              <img src="/static/imgs/ReportIcon.svg"
+                   alt="Informe"
+                   class="report-btn-icon"
+                   onerror="this.style.display='none';
+                            this.nextElementSibling.style.display='inline';" />
+              <span class="report-btn-fallback" style="display:none;">📄</span>
+              <span>Reportes</span>
+            </a>
             {% endif %}
             <!-- ───────────────────────────────────────────────────────── -->
 
