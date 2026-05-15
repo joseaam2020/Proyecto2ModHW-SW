@@ -27,6 +27,7 @@ Instala las dependencias necesarias:
 
 ```
 pip install flask
+pip install reportlab
 ```
 
 ### 2. Ejecutar la simulación (main.py)

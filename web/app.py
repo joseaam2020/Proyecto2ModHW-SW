@@ -1,9 +1,12 @@
 # web/app.py
 from flask import Flask, render_template, send_from_directory, abort
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, send_file
 from typing import List
 from models.pipeline_builder import PipelineBuilder
 from models.process import Process
+from models.report_generator import generate_pdf
+import json
+
 
 import os
 import json
@@ -11,7 +14,10 @@ import json
 
 app = Flask(__name__)
 
-REPORTS_DIR = os.path.join(os.path.dirname(__file__), '..', 'reports')
+REPORTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'reports'))
+PDF_PATH    = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'informe_general.pdf'))
+ 
+
 
 @app.route('/')
 def index():
@@ -81,6 +87,31 @@ def simulate():
         tick += 1
 
     return redirect(url_for('index'))
+@app.route('/informe', methods=['POST'])
+def informe():
+    """Genera el PDF de telemetría a partir de los reportes existentes y lo
+    devuelve como descarga directa al navegador."""
+    if not os.path.isdir(REPORTS_DIR) or not any(
+        f.endswith('.json') for f in os.listdir(REPORTS_DIR)
+    ):
+        # No hay reportes todavía — volver al índice con mensaje de error
+        return redirect(url_for('index', error='no_reports'))
+ 
+    try:
+        generate_pdf(reports_dir=REPORTS_DIR, output_path=PDF_PATH)
+    except Exception as e:
+        app.logger.error(f"Error generando informe: {e}")
+        return redirect(url_for('index', error='pdf_error'))
+ 
+    return send_file(
+        PDF_PATH,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name='informe_general.pdf',
+    )
+ 
+ 
+
 
 if __name__ == '__main__':
     app.run(debug=True)
