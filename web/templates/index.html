@@ -1,0 +1,122 @@
+<!-- Figma design faithfully translated to HTML. Images are hotlinked from Figma and may expire. -->
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LinProd</title>
+<link rel="stylesheet" href="/static/index.css" />
+<script src="/static/index.js" defer></script>
+</head>
+<body>
+<div class="outer-frame">
+  <div class="app-frame">
+
+    <!-- ── Columna izquierda ─────────────────────────────────────────── -->
+    <div class="app-left">
+      <div class="left-autolayout">
+
+        <div class="home-frame">
+          <img src="/static/imgs/Home.svg" alt="Home Icon" />
+          <span>LinProd</span>
+        </div>
+
+        <div class="config-card">
+          <div class="config-section">
+
+            <div class="config-title">
+              <img src="/static/imgs/ConfigIcon.svg" alt="Config Icon" />
+              <span>Configuración</span>
+            </div>
+
+            <div class="config-row">
+              <span>Cantidad de productos</span>
+              <input class="config-input" type="number" min="0" step="1" />
+            </div>
+
+            <div class="add-process-section">
+              <div class="add-process-label">Añadir procesos</div>
+              <button class="add-process-btn">
+                <img src="/static/imgs/BlueCross.svg" alt="Añadir" />
+              </button>
+              <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                  const btn = document.querySelector(".add-process-btn");
+                  if (btn) btn.onclick = addProcessFigma;
+                });
+              </script>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Columna derecha ───────────────────────────────────────────── -->
+    <div class="app-right">
+
+      <!-- Barra superior -->
+      <div class="right-top">
+        <span class="linea-label">Línea de Producción</span>
+
+        <div>
+          <div class="execution-time-section">
+            <span class="execution-time-label">Tiempo de Ejecución</span>
+            <input class="execution-time-input" type="number" min="0" step="1" />
+            <span class="units-label">ms</span>
+          </div>
+
+          <div class="controls-section">
+            <div>
+              <span class="tick-label">Reloj: </span>
+              <input class="tick-input" type="number" min="0" step="1" value="0" readonly />
+            </div>
+            <div>
+              <button class="control-buttons" id="previous-btn">⏪︎</button>
+              <button class="control-buttons" id="iniciar-btn">▶</button>
+              <button class="control-buttons" id="next-btn">⏩︎︎</button>
+            </div>
+
+            <!-- ── Botón que redirige a la página de reportes ───────── -->
+            {% if reports %}
+            <a href="{{ url_for('reportes_page') }}"
+               class="control-buttons report-btn"
+               style="margin-left: 8px; text-decoration: none;"
+               title="Ver y descargar el informe general">
+              <img src="/static/imgs/ReportIcon.svg"
+                   alt="Informe"
+                   class="report-btn-icon"
+                   onerror="this.style.display='none';
+                            this.nextElementSibling.style.display='inline';" />
+              <span class="report-btn-fallback" style="display:none;">📄</span>
+              <span>Reportes</span>
+            </a>
+            {% endif %}
+            <!-- ───────────────────────────────────────────────────────── -->
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensajes de error del PDF (solo si Flask los pasa) -->
+      {% if request.args.get('error') == 'no_reports' %}
+      <div class="report-error-banner">
+        No hay reportes disponibles. Ejecuta una simulación primero.
+      </div>
+      {% elif request.args.get('error') == 'pdf_error' %}
+      <div class="report-error-banner">
+        Error al generar el PDF. Revisa los logs del servidor.
+      </div>
+      {% endif %}
+
+      <!-- Área de procesos -->
+      <div class="right-bottom" id="right-bottom-process-list">
+        <!-- Process cards will be rendered here by JS -->
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

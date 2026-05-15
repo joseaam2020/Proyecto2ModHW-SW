@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinProd · Reportes</title>
+  <link rel="stylesheet" href="/static/index.css" />
+  <link rel="stylesheet" href="/static/reports.css" />
+  <script src="/static/reports.js" defer></script>
+</head>
+<body>
+<div class="outer-frame">
+  <div class="app-frame">
+
+    <!-- ── Sidebar izquierdo ─────────────────────────────────────────── -->
+    <div class="app-left">
+      <div class="left-autolayout">
+
+        <div class="home-frame">
+          <img src="/static/imgs/Home.svg" alt="Home Icon" />
+          <span>LinProd</span>
+        </div>
+
+        <div class="config-card reports-sidebar-card">
+          <div class="config-section">
+
+            <div class="config-title">
+              <img src="/static/imgs/ConfigIcon.svg" alt="Reportes Icon" />
+              <span>Reportes</span>
+            </div>
+
+            <!-- Botón volver al simulador (gris secundario) -->
+            <a href="/" class="reports-back-btn" id="back-to-sim-btn">
+              <img src="/static/imgs/Home.svg" alt="" class="reports-btn-icon" />
+              <span>Volver al simulador</span>
+            </a>
+
+            <!-- Botón principal: descargar PDF -->
+            <button type="button" class="reports-download-btn" id="download-pdf-btn">
+              <span class="reports-download-label">Descargar PDF</span>
+            </button>
+
+            <p class="reports-download-hint" id="download-hint">
+              Genera el informe general con todas las estadísticas de la simulación.
+            </p>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Área principal ────────────────────────────────────────────── -->
+    <div class="app-right">
+
+      <!-- Header con tabs -->
+      <div class="right-top reports-right-top">
+        <span class="linea-label">Reportes</span>
+
+        <div class="reports-tabs">
+          <button type="button" class="report-tab active" id="tab-pdf" data-tab="pdf">
+            Visualizar PDF
+          </button>
+          <button type="button" class="report-tab" id="tab-list" data-tab="list">
+            Reportes individuales
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje de error/info -->
+      <div class="reports-banner" id="reports-banner" style="display:none;"></div>
+
+      <!-- Contenido (cambia según el tab) -->
+      <div class="right-bottom reports-content">
+
+        <!-- Panel 1: Visualizar PDF -->
+        <div class="report-panel" id="panel-pdf">
+          <div class="pdf-frame-wrapper" id="pdf-frame-wrapper">
+            <div class="pdf-empty-state" id="pdf-empty-state">
+              <img src="/static/imgs/Home.svg" alt="" class="pdf-empty-icon" />
+              <p class="pdf-empty-title">Aún no se ha generado el informe</p>
+              <p class="pdf-empty-sub">
+                Haz clic en <b>Descargar PDF</b> en el panel izquierdo para
+                generar y visualizar el informe general.
+              </p>
+            </div>
+            <iframe
+              id="pdf-iframe"
+              class="pdf-iframe"
+              title="Informe general"
+              style="display:none;"></iframe>
+          </div>
+        </div>
+
+        <!-- Panel 2: Lista de reportes individuales -->
+        <div class="report-panel" id="panel-list" style="display:none;">
+          <div class="reports-list-header">
+            <span class="reports-list-title">Reportes por tick</span>
+            <span class="reports-list-count" id="reports-list-count">0 reportes</span>
+          </div>
+
+          <div class="reports-list-scroll" id="reports-list-scroll">
+            <div class="reports-list-empty" id="reports-list-empty">
+              No hay reportes disponibles. Ejecuta una simulación primero.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para mostrar el detalle de un reporte individual -->
+<div class="report-modal-backdrop" id="report-modal-backdrop" style="display:none;">
+  <div class="report-modal">
+    <div class="report-modal-header">
+      <span class="report-modal-title" id="report-modal-title">Reporte</span>
+      <button type="button" class="report-modal-close" id="report-modal-close">✕</button>
+    </div>
+    <div class="report-modal-body" id="report-modal-body">
+      <!-- llenado dinámicamente -->
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

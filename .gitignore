@@ -1,0 +1,4 @@
+env/
+models/__pycache__/
+web/__pycache__/
+reports/
